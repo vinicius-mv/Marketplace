@@ -7,4 +7,8 @@ public class Price : Money
         if (amount < 0)
             throw new ArgumentOutOfRangeException(nameof(amount), "Price cannot be negative");
     }
+
+    public new static Price FromDecimal(decimal amount, string currency,
+        ICurrencyLookup currencyLookup) =>
+        new Price(amount, currency, currencyLookup);
 }
