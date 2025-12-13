@@ -1,6 +1,8 @@
-﻿namespace Marketplace.Domain;
+﻿using Marketplace.Framework;
 
-public class ClassifiedAd
+namespace Marketplace.Domain;
+
+public class ClassifiedAd : Entity
 {
     public ClassifiedAdId Id { get; }
 
@@ -11,30 +13,56 @@ public class ClassifiedAd
         State = ClassifiedAdState.Inactive;
 
         EnsureValidState();
+
+        Raise(new Events.ClassifiedAdCreated
+        {
+            Id = id,
+            OwnerId = ownerId
+        });
     }
 
     public void SetTitle(ClassifiedAdTitle title)
     {
         Title = title;
         EnsureValidState();
+
+        Raise(new Events.ClassifiedAdTitleChanged
+        {
+            Id = Id,
+            Title = title
+        });
     }
 
     public void UpdateText(ClassifiedAdText text)
     {
         Text = text;
         EnsureValidState();
+
+        Raise(new Events.ClassifiedAdTextUpdated
+        {
+            Id = Id,
+            AdText = text
+        });
     }
 
     public void UpdatePrice(Price price)
     {
         Price = price;
         EnsureValidState();
+
+        Raise(new Events.ClassifiedAdPriceUpdated {
+            Id = Id,
+            Price = Price.Amount,
+            CurrencyCode = Price.Currency.CurrencyCode
+        });
     }
 
     public void RequestToPublish()
     {
         State = ClassifiedAdState.PendingReview;
         EnsureValidState();
+
+        Raise(new Events.ClassifiedAdSentForReview { Id = Id });
     }
 
     protected void EnsureValidState()

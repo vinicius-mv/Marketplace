@@ -30,4 +30,6 @@ public class ClassifiedAdTitle : Value<ClassifiedAdTitle>
 
         _value = value;
     }
+
+    public static implicit operator string(ClassifiedAdTitle title) => title._value;
 }
