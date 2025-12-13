@@ -5,7 +5,11 @@ namespace Marketplace.Domain;
 
 public class ClassifiedAdTitle : Value<ClassifiedAdTitle>
 {
-    public static ClassifiedAdTitle FromString(string title) => new ClassifiedAdTitle(title);
+    public static ClassifiedAdTitle FromString(string title)
+    {
+        CheckValidity(title);
+        return new ClassifiedAdTitle(title);
+    }
 
     public static ClassifiedAdTitle FromHtml(string htmlTitle)
     {
@@ -17,19 +21,27 @@ public class ClassifiedAdTitle : Value<ClassifiedAdTitle>
             .Replace("<u>", "")
             .Replace("</u>", "");
 
-        return new ClassifiedAdTitle(Regex.Replace(
-            supportedTagsReplaced, "<.*?>", string.Empty));
+        var value = Regex.Replace(supportedTagsReplaced, "<.*?>", string.Empty);
+        CheckValidity(value);
+
+        return new ClassifiedAdTitle(value);
     }
 
-    private readonly string _value;
+    public string Value { get; }
 
-    private ClassifiedAdTitle(string value)
+    /// <summary>
+    /// Internal constructor used when rehydrating this value object from persisted events.
+    /// It intentionally bypasses runtime validation so historical event data is accepted as-is.
+    /// This ensures that applying past events remains deterministic and has no side effects even
+    /// if current validation rules or value-object logic have changed since the event was produced.
+    /// </summary>
+    internal ClassifiedAdTitle(string value) => Value = value;
+
+    public static implicit operator string(ClassifiedAdTitle title) => title.Value;
+
+    private static void CheckValidity(string value)
     {
         if (value.Length > 100)
             throw new ArgumentOutOfRangeException(nameof(value), "Title cannot be longer than 100 characters");
-
-        _value = value;
     }
-
-    public static implicit operator string(ClassifiedAdTitle title) => title._value;
 }
