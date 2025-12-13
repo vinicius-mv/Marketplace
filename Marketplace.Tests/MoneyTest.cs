@@ -2,24 +2,82 @@
 
 namespace Marketplace.Tests;
 
-public class MoneyTest
+public class Money_Spec
 {
+    protected static readonly ICurrencyLookup CurrencyLookup = new FakeCurrencyLookup();
+
     [Fact]
-    public void Money_objects_with_the_same_amount_should_be_equal()
+    public void Two_of_same_amount_should_be_equal()
     {
-        var firstAmount = new Money(5);
-        var secondAmount = new Money(5);
+        var firstAmount = Money.FromDecimal(5, "EUR", CurrencyLookup);
+        var secondAmount = Money.FromDecimal(5, "EUR", CurrencyLookup);
+
+        Assert.Equal(firstAmount, secondAmount);
+    }
+
+    public void Two_of_same_amount_but_different_currency_should_not_be_equal()
+    {
+        var firstAmount = Money.FromDecimal(5, "EUR", CurrencyLookup);
+        var secondAmount = Money.FromDecimal(5, "USD", CurrencyLookup);
+
+        Assert.NotEqual(firstAmount, secondAmount);
+    }
+
+    [Fact]
+    public void FromString_and_FromDecimal_should_be_equal()
+    {
+        var firstAmount = Money.FromDecimal(5, "EUR", CurrencyLookup);
+        var secondAmount = Money.FromString("5.00", "EUR", CurrencyLookup);
 
         Assert.Equal(firstAmount, secondAmount);
     }
 
     [Fact]
-    public void Sum_of_moneys_gives_full_amount()
+    public void Sum_of_money_gives_full_amount()
     {
-        var coin1 = new Money(1);
-        var coin2 = new Money(2);
-        var coin3 = new Money(3);
-        var banknote = new Money(6);
+        var coin1 = Money.FromDecimal(1, "EUR", CurrencyLookup);
+        var coin2 = Money.FromDecimal(2, "EUR", CurrencyLookup);
+        var coin3 = Money.FromDecimal(2, "EUR", CurrencyLookup);
+        var banknote = Money.FromDecimal(5, "EUR", CurrencyLookup);
+
         Assert.Equal(banknote, coin1 + coin2 + coin3);
+    }
+
+    [Fact]
+    public void Unusued_currency_should_not_be_allowed()
+    {
+        Assert.Throws<ArgumentException>(() =>
+            Money.FromDecimal(100, "DEM", CurrencyLookup)
+        );
+    }
+
+    [Fact]
+    public void Unknown_currency_should_not_be_allowed()
+    {
+        Assert.Throws<ArgumentException>(() =>
+            Money.FromDecimal(100, "NON EXISTENT CURRENCY CODE", CurrencyLookup)
+        );
+    }
+
+    [Fact]
+    public void Throws_on_adding_different_currencies()
+    {
+        var firstAmount = Money.FromDecimal(5, "USD", CurrencyLookup);
+        var secondAmount = Money.FromDecimal(5, "EUR", CurrencyLookup);
+
+        Assert.Throws<CurrencyMismatchException>(() =>
+            firstAmount - secondAmount
+        );
+    }
+
+    [Fact]
+    public void Throws_on_subtracting_different_currencies()
+    {
+        var firstAmount = Money.FromDecimal(5, "USD", CurrencyLookup);
+        var secondAmount = Money.FromDecimal(5, "EUR", CurrencyLookup);
+
+        Assert.Throws<CurrencyMismatchException>(() =>
+            firstAmount - secondAmount
+        );
     }
 }
