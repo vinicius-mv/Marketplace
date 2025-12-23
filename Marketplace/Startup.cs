@@ -1,4 +1,5 @@
-﻿using Marketplace.Contracts;
+﻿using Marketplace.Application;
+using Marketplace.Application.Contracts;
 using Microsoft.Extensions.Configuration;
 
 namespace Marketplace;

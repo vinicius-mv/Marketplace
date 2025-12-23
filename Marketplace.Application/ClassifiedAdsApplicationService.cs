@@ -20,10 +20,30 @@ public class ClassifiedAdsApplicationService : IApplicationService
         return command switch
         {
             V1.Create cmd => HandleCreate(cmd),
-            V1.SetTitle cmd => HandleSetTitle(cmd),
-            V1.UpdateText cmd => HandleUpdateText(cmd),
-            V1.UpdatePrice cmd => HandleUpdatePrice(cmd),
-            V1.RequestToPublish cmd => HandleRequestToPublish(cmd),
+
+            V1.SetTitle cmd => 
+                HandleUpdate(
+                    classifiedAdId: cmd.Id,
+                    operation: c => c.SetTitle(ClassifiedAdTitle.FromString(cmd.Title))
+                ),
+
+            V1.UpdateText cmd => 
+                HandleUpdate(
+                    classifiedAdId: cmd.Id,
+                    operation: c => c.UpdateText(ClassifiedAdText.FromString(cmd.Text))
+                ),
+
+            V1.UpdatePrice cmd => 
+                HandleUpdate(
+                    classifiedAdId: cmd.Id,
+                    operation: c => c.UpdatePrice(Price.FromDecimal(cmd.Price, cmd.Currency, _currencyLookup))
+                ),
+
+            V1.RequestToPublish cmd => HandleUpdate(
+                cmd.Id,
+                c => c.RequestToPublish()
+            ),
+
             _ => throw new InvalidOperationException($"Unknown command type: {command.GetType().FullName}"),
         };
     }
@@ -40,49 +60,14 @@ public class ClassifiedAdsApplicationService : IApplicationService
         await _store.Save(classifiedAd);
     }
 
-    private async Task HandleSetTitle(V1.SetTitle cmd)
+    private async Task HandleUpdate(Guid classifiedAdId, Action<ClassifiedAd> operation)
     {
-        var classifiedAd = await _store.Load<ClassifiedAd>(cmd.Id.ToString());
+        var classifiedAd = await _store.Load<ClassifiedAd>(classifiedAdId.ToString());
         if (classifiedAd == null)
-            throw new InvalidOperationException($"Entity with id {cmd.Id} does not exist");
+            throw new InvalidOperationException($"Entity with id {classifiedAdId} does not exist");
 
-        classifiedAd.SetTitle(
-            ClassifiedAdTitle.FromString(cmd.Title)
-        );
+        operation(classifiedAd);   
         await _store.Save(classifiedAd);
-    }
 
-    private async Task HandleUpdateText(V1.UpdateText cmd)
-    {
-        var classifiedAd = await _store.Load<ClassifiedAd>(cmd.Id.ToString());
-        if (classifiedAd == null)
-            throw new InvalidOperationException($"Entity with id {cmd.Id} does not exist");
-
-        classifiedAd.UpdateText(
-            ClassifiedAdText.FromString(cmd.Text)
-        );
-        await _store.Save(classifiedAd);
-    }
-
-    private async Task HandleUpdatePrice(V1.UpdatePrice cmd)
-    {
-        var classifiedAd = await _store.Load<ClassifiedAd>(cmd.Id.ToString());
-        if (classifiedAd == null)
-            throw new InvalidOperationException($"Entity with id {cmd.Id} does not exist");
-
-        classifiedAd.UpdatePrice(
-            Price.FromDecimal(cmd.Price, cmd.Currency, _currencyLookup)
-        );
-        await _store.Save(classifiedAd);
-    }
-
-    private async Task HandleRequestToPublish(V1.RequestToPublish cmd)
-    {
-        var classifiedAd = await _store.Load<ClassifiedAd>(cmd.Id.ToString());
-        if (classifiedAd == null)
-            throw new InvalidOperationException($"Entity with id {cmd.Id} does not exist");
-
-        classifiedAd.RequestToPublish();
-        await _store.Save(classifiedAd);
     }
 }

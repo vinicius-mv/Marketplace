@@ -1,5 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using static Marketplace.Contracts.ClassifiedAds;
+﻿using Marketplace.Application;
+using Microsoft.AspNetCore.Mvc;
+using static Marketplace.Application.Contracts.ClassifiedAds;
 
 namespace Marketplace.Api;
 
