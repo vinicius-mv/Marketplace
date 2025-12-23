@@ -3,6 +3,9 @@
 ##
 ## Get latest from `dotnet new gitignore`
 
+# ignore private assets
+/PrivateAssets/*
+
 # dotenv files
 .env
 

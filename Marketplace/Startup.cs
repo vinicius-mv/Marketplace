@@ -27,6 +27,8 @@ public class Startup
                     Version = "v1"
                 });
         });
+
+        services.AddSingleton<ClassifiedAdsApplicationService>();
     }
 
 
