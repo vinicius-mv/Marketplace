@@ -1,32 +1,27 @@
 ﻿namespace Marketplace.Framework;
 
-public abstract class Entity
+public abstract class Entity<TId> : IInternalEventHandler
+    where TId : Value<TId>
 {
-    private readonly List<object> _events;
+    private readonly Action<object> _applier;
 
-    protected Entity()
-    {
-        _events = new List<object>();
-    }
+    public TId Id { get; protected set; }
 
-    protected void Apply(object @event)
+    protected Entity(Action<object> applier)
     {
-        When(@event);
-        EnsureValidState();
-        _events.Add(@event);
+        _applier = applier;
     }
 
     protected abstract void When(object @event);
 
-    public IEnumerable<object> GetChanges()
+    protected void Apply(object @event)
     {
-        return _events.AsEnumerable();
+        When(@event);
+        _applier(@event);
     }
 
-    public void ClearChanges()
+    public void Handle(object @event)
     {
-        _events.Clear();
+        When(@event);
     }
-
-    protected abstract void EnsureValidState();
 }

@@ -2,7 +2,7 @@
 
 namespace Marketplace.Domain;
 
-public class ClassifiedAd : Entity
+public class ClassifiedAd : AggregateRoot<ClassifiedAdId>
 {
     public ClassifiedAdId Id { get; private set; }
     public UserId OwnerId { get; private set; }
@@ -11,6 +11,8 @@ public class ClassifiedAd : Entity
     public Price Price { get; private set; }
     public ClassifiedAdState State { get; private set; }
     public UserId ApprovedBy { get; private set; }
+
+    public List<Picture> Pictures { get; private set; }
 
     public ClassifiedAd(ClassifiedAdId id, UserId ownerId) => 
         Apply(new Events.ClassifiedAdCreated
@@ -72,6 +74,12 @@ public class ClassifiedAd : Entity
             case Events.ClassifiedAdSentForReview e:
                 State = ClassifiedAdState.PendingReview;
                 break;
+
+            case Events.PictureAddedToAClassifiedAd e:
+                var picture = new Picture(Apply);
+                ApplyToEntity(picture, e);
+                Pictures.Add(picture);
+                break;
         }
     }
 
@@ -82,14 +90,55 @@ public class ClassifiedAd : Entity
             OwnerId != null &&
             (State switch
             {
-                ClassifiedAdState.PendingReview => Title != null && Text != null && Price?.Amount > 0,
-                ClassifiedAdState.Active => Title != null && Text != null && Price?.Amount > 0 && ApprovedBy != null,
+                ClassifiedAdState.PendingReview => 
+                    Title != null && 
+                    Text != null && 
+                    Price?.Amount > 0 &&
+                    FirstPicture.HasCorrectSize(),
+
+                ClassifiedAdState.Active => 
+                    Title != null && 
+                    Text != null && 
+                    Price?.Amount > 0 && 
+                    ApprovedBy != null &&
+                    FirstPicture.HasCorrectSize() &&
+                    ApprovedBy != null,
+
                 _ => true
             });
 
         if (!valid)
-            throw new InvalidEntityStateException(this, "Post-checks failed in state {State}");
+            throw new InvalidEntityStateException(this, $"Post-checks failed in state {State}");
     }
+
+    public void AddPicture(Uri pictureUri, PictureSize size)
+    {
+        Apply(new Events.PictureAddedToAClassifiedAd
+        {
+            PictureId = Guid.NewGuid(),
+            ClassifiedAdId = Id,
+            Url = pictureUri.ToString(),
+            Height = size.Height,
+            Width = size.Width,
+            Order = Pictures.Max(x => x.Order)
+        });
+    }
+
+    public void ResizePicture(PictureId pictureId, PictureSize newSize)
+    {
+        var picture = FindPicture(pictureId);
+        if (picture == null)
+            throw new InvalidOperationException($"Picture with id '{pictureId}' not found");
+        picture.Resize(newSize);
+    }
+
+    private Picture FindPicture(PictureId id)
+    {
+        return Pictures.FirstOrDefault(x => x.Id == id);
+    }
+
+    private Picture FirstPicture =>
+        Pictures.OrderBy(x => x.Order).FirstOrDefault();
 
     public enum ClassifiedAdState
     {
