@@ -1,5 +1,6 @@
 ﻿using Marketplace.Application;
 using Marketplace.Application.Contracts;
+using Marketplace.Framework;
 using Microsoft.Extensions.Configuration;
 
 namespace Marketplace;
@@ -29,7 +30,7 @@ public class Startup
                 });
         });
 
-        services.AddSingleton<ClassifiedAdsApplicationService>();
+        services.AddSingleton<IClassifiedAdsApplicationService, ClassifiedAdsApplicationService>();
     }
 
 

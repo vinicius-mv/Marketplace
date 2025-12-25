@@ -4,7 +4,7 @@ using static Marketplace.Application.Contracts.ClassifiedAds;
 
 namespace Marketplace.Application;
 
-public class ClassifiedAdsApplicationService : IApplicationService
+public class ClassifiedAdsApplicationService : IClassifiedAdsApplicationService, IApplicationService
 {
     private readonly IEntityStore _store;
     private readonly ICurrencyLookup _currencyLookup;
@@ -21,19 +21,19 @@ public class ClassifiedAdsApplicationService : IApplicationService
         {
             V1.Create cmd => HandleCreate(cmd),
 
-            V1.SetTitle cmd => 
+            V1.SetTitle cmd =>
                 HandleUpdate(
                     classifiedAdId: cmd.Id,
                     operation: c => c.SetTitle(ClassifiedAdTitle.FromString(cmd.Title))
                 ),
 
-            V1.UpdateText cmd => 
+            V1.UpdateText cmd =>
                 HandleUpdate(
                     classifiedAdId: cmd.Id,
                     operation: c => c.UpdateText(ClassifiedAdText.FromString(cmd.Text))
                 ),
 
-            V1.UpdatePrice cmd => 
+            V1.UpdatePrice cmd =>
                 HandleUpdate(
                     classifiedAdId: cmd.Id,
                     operation: c => c.UpdatePrice(Price.FromDecimal(cmd.Price, cmd.Currency, _currencyLookup))
@@ -66,7 +66,7 @@ public class ClassifiedAdsApplicationService : IApplicationService
         if (classifiedAd == null)
             throw new InvalidOperationException($"Entity with id {classifiedAdId} does not exist");
 
-        operation(classifiedAd);   
+        operation(classifiedAd);
         await _store.Save(classifiedAd);
 
     }
