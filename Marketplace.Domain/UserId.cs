@@ -4,15 +4,15 @@ namespace Marketplace.Domain;
 
 public class UserId : Value<UserId>
 {
-    private readonly Guid _value;
+    public Guid Value { get; private set; }
 
     public UserId(Guid value)
     {
         if (value == default)
             throw new ArgumentException(nameof(value), "User id cannot be empty");
 
-        _value = value;
+        Value = value;
     }
 
-    public static implicit operator Guid(UserId self) => self._value;
+    public static implicit operator Guid(UserId self) => self.Value;
 }

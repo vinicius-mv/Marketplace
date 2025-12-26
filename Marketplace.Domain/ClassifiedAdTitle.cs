@@ -44,4 +44,7 @@ public class ClassifiedAdTitle : Value<ClassifiedAdTitle>
         if (value.Length > 100)
             throw new ArgumentOutOfRangeException(nameof(value), "Title cannot be longer than 100 characters");
     }
+
+    // Satisfy the serialization requirements
+    protected ClassifiedAdTitle() { }
 }

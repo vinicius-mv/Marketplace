@@ -10,6 +10,8 @@ public class ClassifiedAdsCommandsApi : Controller
 {
     private readonly IApplicationService _applicationService;
 
+    private static ILogger Log = (ILogger)Serilog.Log.ForContext<ClassifiedAdsCommandsApi>();
+
     public ClassifiedAdsCommandsApi(IApplicationService applicationService)
     {
         _applicationService = applicationService;
@@ -49,5 +51,20 @@ public class ClassifiedAdsCommandsApi : Controller
     {
         await _applicationService.Handle(request);
         return Ok();
+    }
+
+    private async Task<IActionResult> HandleRequest<T>(T request, Func<T, Task> handler)
+    {
+        try
+        {
+            Log.LogDebug("Handlign HTTP request of type {type}", typeof(T).Name);
+            await handler(request);
+            return Ok();
+        }
+        catch (Exception e)
+        {
+            Log.LogError("Error handling the request", e);
+            return new BadRequestObjectResult (new { error = e.Message, stackTrace = e.StackTrace });
+        }
     }
 }

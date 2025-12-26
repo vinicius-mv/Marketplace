@@ -1,0 +1,19 @@
+﻿using Marketplace.Framework;
+using Raven.Client.Documents.Session;
+
+namespace Marketplace.Infrastructure;
+
+public class RavenDbUnitOfWork : IUnitOfWork
+{
+    private readonly IAsyncDocumentSession _session;
+
+    public RavenDbUnitOfWork(IAsyncDocumentSession session)
+    {
+        _session = session;
+    }
+
+    public async Task Commit()
+    {
+        await _session.SaveChangesAsync();
+    }
+}

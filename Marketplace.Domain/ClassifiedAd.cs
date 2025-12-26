@@ -14,28 +14,31 @@ public class ClassifiedAd : AggregateRoot<ClassifiedAdId>
 
     public List<Picture> Pictures { get; private set; }
 
-    public ClassifiedAd(ClassifiedAdId id, UserId ownerId) => 
+    public ClassifiedAd(ClassifiedAdId id, UserId ownerId)
+    {
+        Pictures = new List<Picture>();
         Apply(new Events.ClassifiedAdCreated
         {
             Id = id,
             OwnerId = ownerId
         });
+    }
 
-    public void SetTitle(ClassifiedAdTitle title) => 
+    public void SetTitle(ClassifiedAdTitle title) =>
         Apply(new Events.ClassifiedAdTitleChanged
         {
             Id = Id,
             Title = title
         });
 
-    public void UpdateText(ClassifiedAdText text) => 
+    public void UpdateText(ClassifiedAdText text) =>
         Apply(new Events.ClassifiedAdTextUpdated
         {
             Id = Id,
             AdText = text
         });
 
-    public void UpdatePrice(Price price) => 
+    public void UpdatePrice(Price price) =>
         Apply(new Events.ClassifiedAdPriceUpdated
         {
             Id = Id,
@@ -43,7 +46,7 @@ public class ClassifiedAd : AggregateRoot<ClassifiedAdId>
             CurrencyCode = price.Currency.CurrencyCode
         });
 
-    public void RequestToPublish() => 
+    public void RequestToPublish() =>
         Apply(new Events.ClassifiedAdSentForReview
         {
             Id = Id
@@ -90,16 +93,16 @@ public class ClassifiedAd : AggregateRoot<ClassifiedAdId>
             OwnerId != null &&
             (State switch
             {
-                ClassifiedAdState.PendingReview => 
-                    Title != null && 
-                    Text != null && 
+                ClassifiedAdState.PendingReview =>
+                    Title != null &&
+                    Text != null &&
                     Price?.Amount > 0 &&
                     FirstPicture.HasCorrectSize(),
 
-                ClassifiedAdState.Active => 
-                    Title != null && 
-                    Text != null && 
-                    Price?.Amount > 0 && 
+                ClassifiedAdState.Active =>
+                    Title != null &&
+                    Text != null &&
+                    Price?.Amount > 0 &&
                     ApprovedBy != null &&
                     FirstPicture.HasCorrectSize() &&
                     ApprovedBy != null,

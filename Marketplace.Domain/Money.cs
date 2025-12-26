@@ -28,14 +28,14 @@ public class Money : Value<Money>
         Currency = currency;
     }
 
-    protected Money(decimal amount, CurrencyDetails currency)
+    protected Money(decimal amount, Currency currency)
     {
         Amount = amount;
         Currency = currency;
     }
 
     public decimal Amount { get; }
-    public CurrencyDetails Currency { get; }
+    public Currency Currency { get; }
 
     public Money Add(Money summand)
     {
@@ -58,6 +58,9 @@ public class Money : Value<Money>
     public static Money operator -(Money minuend, Money subtrahend) => minuend.Subtract(subtrahend);
 
     public override string ToString() => $"{Currency.CurrencyCode} {Amount}";
+
+    // Satisfy the serialization requirements 
+    protected Money() { }
 }
 
 public class CurrencyMismatchException : Exception

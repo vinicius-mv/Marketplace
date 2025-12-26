@@ -1,7 +1,10 @@
 ﻿using Marketplace.Application;
 using Marketplace.Application.Contracts;
+using Marketplace.Domain;
 using Marketplace.Framework;
+using Marketplace.Infrastructure;
 using Microsoft.Extensions.Configuration;
+using Raven.Client.Documents;
 
 namespace Marketplace;
 
@@ -18,8 +21,28 @@ public class Startup
 
     public void ConfigureServices(IServiceCollection services)
     {
+        // RavenDB configuration
+        var store = new DocumentStore
+        {
+            Urls = new[] { "http://localhost:8080" },
+            Database = "Marketplace",
+            Conventions =
+            {
+                FindIdentityProperty = x => x.Name == "_databaseId"
+            }
+        };
+        store.Initialize();
+
+        // Dependency Injection configuration
+        services.AddSingleton<ICurrencyLookup, FixedCurrencyLookup>();
+        services.AddScoped(c => store.OpenAsyncSession());
+        services.AddScoped<IUnitOfWork, RavenDbUnitOfWork>();
+        services.AddScoped<IClassifiedAdRepository, ClassifiedAdRepository>();
+        services.AddScoped<IApplicationService, ClassifiedAdsApplicationService>();
+
         services.AddControllers();
 
+        // Swagger configuration
         services.AddSwaggerGen(c =>
         {
             c.SwaggerDoc("v1",
@@ -29,8 +52,6 @@ public class Startup
                     Version = "v1"
                 });
         });
-
-        services.AddSingleton<IClassifiedAdsApplicationService, ClassifiedAdsApplicationService>();
     }
 
 

@@ -4,7 +4,7 @@ using static Marketplace.Application.Contracts.ClassifiedAds;
 
 namespace Marketplace.Application;
 
-public class ClassifiedAdsApplicationService : IClassifiedAdsApplicationService, IApplicationService
+public class ClassifiedAdsApplicationService : IApplicationService
 {
     private readonly IClassifiedAdRepository _repository;
     private readonly IUnitOfWork _unitOfWork;

@@ -10,10 +10,13 @@ public class Price : Money
     }
 
     internal Price(decimal amount, string currencyCode)
-        : base(amount, new CurrencyDetails { CurrencyCode = currencyCode })
+        : base(amount, new Currency { CurrencyCode = currencyCode })
     {
     }
 
     public new static Price FromDecimal(decimal amount, string currency, ICurrencyLookup currencyLookup) =>
         new Price(amount, currency, currencyLookup);
+
+    // Satisfy the serialization requirements
+    protected Price() { }
 }
